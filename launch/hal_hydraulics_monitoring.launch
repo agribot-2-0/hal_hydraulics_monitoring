@@ -1,0 +1,3 @@
+<launch>
+    <node name="hal_hydraulics_monitoring_node" pkg="hal_hydraulics_monitoring" type="hal_hydraulics_monitoring_node" args="can0" />
+</launch>
