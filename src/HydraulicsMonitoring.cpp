@@ -7,6 +7,10 @@
 #define HYDRAULICS_PRESSURE_DATA_ID 0xFFD964
 #define HYDRAULICS_TEMPERATURE_DATA_ID 0xFFDA64
 
+#define PRESSURE_CONSTANT_DIVIDER 100.0
+#define TEMPERATURE_OFFSET 100
+#define TEMPERATURE_CONSTANT_DIVIDER 10.0
+
 #define FIRST_SENSOR_ID_BYTE 0
 #define FIRST_SENSOR_DATA_BYTE 1
 #define SECOND_SENSOR_ID_BYTE 3
@@ -56,41 +60,43 @@ bool HydraulicsMonitoring::update()
       {
         SensorsData.fPressureValueFL =
             (static_cast<float>(frame.data[FIRST_SENSOR_DATA_BYTE] + (frame.data[FIRST_SENSOR_DATA_BYTE + 1] << 8)) /
-             100.0);
+             PRESSURE_CONSTANT_DIVIDER);
         SensorsData.fPressureValueFR =
             (static_cast<float>(frame.data[SECOND_SENSOR_DATA_BYTE] + (frame.data[SECOND_SENSOR_DATA_BYTE + 1] << 8)) /
-             100.0);
+             PRESSURE_CONSTANT_DIVIDER);
         u8PressDataFlags = u8PressDataFlags | (SENSOR_FLR_FLAG);
       }  // second pair
       else if (frame.data[FIRST_SENSOR_ID_BYTE] == SENSOR_BL && frame.data[SECOND_SENSOR_ID_BYTE] == SENSOR_BR)
       {
         SensorsData.fPressureValueBL =
             (static_cast<float>(frame.data[FIRST_SENSOR_DATA_BYTE] + (frame.data[FIRST_SENSOR_DATA_BYTE + 1] << 8)) /
-             100.0);
+             PRESSURE_CONSTANT_DIVIDER);
         SensorsData.fPressureValueBR =
             (static_cast<float>(frame.data[SECOND_SENSOR_DATA_BYTE] + (frame.data[SECOND_SENSOR_DATA_BYTE + 1] << 8)) /
-             100.0);
+             PRESSURE_CONSTANT_DIVIDER);
         u8PressDataFlags = u8PressDataFlags | (SENSOR_BLR_FLAG);
-      }
+      }  // third pair
       else if (frame.data[FIRST_SENSOR_ID_BYTE] == SENSOR_MF && frame.data[SECOND_SENSOR_ID_BYTE] == SENSOR_MB)
       {
         SensorsData.fPressureValueManifoldF =
             (static_cast<float>(frame.data[FIRST_SENSOR_DATA_BYTE] + (frame.data[FIRST_SENSOR_DATA_BYTE + 1] << 8)) /
-             100.0);
+             PRESSURE_CONSTANT_DIVIDER);
         SensorsData.fPressureValueManifoldB =
             (static_cast<float>(frame.data[SECOND_SENSOR_DATA_BYTE] + (frame.data[SECOND_SENSOR_DATA_BYTE + 1] << 8)) /
-             100.0);
+             PRESSURE_CONSTANT_DIVIDER);
         u8PressDataFlags = u8PressDataFlags | (SENSOR_MFB_FLAG);
       }
-    }
+    }  // temperature data
     else if ((frame.can_id & THREE_BYTES_MASK) == (HYDRAULICS_TEMPERATURE_DATA_ID & THREE_BYTES_MASK))
     {
-      SensorsData.fTempOilTank = (static_cast<float>(frame.data[COOLER_TEMP_FIRST_BYTE] +
-                                                     (frame.data[COOLER_TEMP_FIRST_BYTE + 1] << 8) - 100) /
-                                  10.0);
+      SensorsData.fTempOilTank =
+          (static_cast<float>(frame.data[COOLER_TEMP_FIRST_BYTE] + (frame.data[COOLER_TEMP_FIRST_BYTE + 1] << 8) -
+                              TEMPERATURE_OFFSET) /
+           TEMPERATURE_CONSTANT_DIVIDER);
       SensorsData.fTempOilCooler =
-          (static_cast<float>(frame.data[TANK_TEMP_FIRST_BYTE] + (frame.data[TANK_TEMP_FIRST_BYTE + 1] << 8) - 100) /
-           10.0);
+          (static_cast<float>(frame.data[TANK_TEMP_FIRST_BYTE] + (frame.data[TANK_TEMP_FIRST_BYTE + 1] << 8) -
+                              TEMPERATURE_OFFSET) /
+           TEMPERATURE_CONSTANT_DIVIDER);
       u8PressDataFlags = u8PressDataFlags | (SENSOR_TEMP_FLAG);
     }
   }
