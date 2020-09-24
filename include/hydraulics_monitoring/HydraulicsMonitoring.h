@@ -8,7 +8,7 @@
 #include <agribot_common/Can.h>
 #include <queue>
 
-struct SOilSensorsData
+struct OilSensorsData
 {
   float fPressureValueFL;
   float fPressureValueFR;
@@ -23,9 +23,9 @@ struct SOilSensorsData
 class HydraulicsMonitoring : public AgribotComponent
 {
 private:
-  char* _pchCanChannel;
-  Can _CanHandler;
-  SOilSensorsData SensorsData;
+  char* pchCanChannel;
+  Can CanHandler;
+  OilSensorsData sSensorsData;
   uint8_t u8PressDataFlags;
 
 public:
@@ -37,5 +37,7 @@ public:
   virtual bool stop();
   virtual bool cleanup();
 
-  bool bGetOilData(SOilSensorsData* dataBufor);
+  float fParsePressureData(can_frame* ptrFrame, uint8_t u8FirstDataByte);
+  float fParseTemperatureData(can_frame* ptrFrame, uint8_t u8FirstDataByte);
+  bool bGetOilData(OilSensorsData* dataBufor);
 };

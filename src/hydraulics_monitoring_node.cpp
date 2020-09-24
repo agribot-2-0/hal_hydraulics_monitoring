@@ -10,11 +10,10 @@
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "hydraulics_monitoring");
-  ros::NodeHandle n;
-  ros::Rate loop_rate(10);
-  ros::Publisher hydraulics_pub =
-      n.advertise<agribot_msgs::AgribotHydraulics>("agribot/hydraulics", 1);
-  agribot_msgs::AgribotHydraulics msg;
+  ros::NodeHandle nh;
+  ros::Rate LoopRate(10);
+  ros::Publisher HydraulicsPub = nh.advertise<agribot_msgs::AgribotHydraulics>("agribot/hydraulics", 1);
+  agribot_msgs::AgribotHydraulics Msg;
 
   if (argc < 3)
   {
@@ -25,30 +24,29 @@ int main(int argc, char** argv)
 
   HydraulicsMonitoring Hydraulics(argv[1]);
 
-  SOilSensorsData tempPressureData;
-  float tempCoolerTemp = 0;
-  float tempTankTemp = 0;
+  OilSensorsData sTempPressureData;
+
   while (ros::ok())
   {
     if (Hydraulics.update())
     {
-      if (Hydraulics.bGetOilData(&tempPressureData))
+      if (Hydraulics.bGetOilData(&sTempPressureData))
       {
-        msg.header.frame_id = "hydraulics_monitor_link";
-        msg.header.stamp = ros::Time::now();
-        msg.oil_pressure_track_FL = tempPressureData.fPressureValueFL;
-        msg.oil_pressure_track_FR = tempPressureData.fPressureValueFR;
-        msg.oil_pressure_track_BL = tempPressureData.fPressureValueBL;
-        msg.oil_pressure_track_BR = tempPressureData.fPressureValueBR;
-        msg.oil_pressure_manifold_F = tempPressureData.fPressureValueManifoldF;
-        msg.oil_pressure_manifold_B = tempPressureData.fPressureValueManifoldB;
-        msg.oil_cooler_temperature = tempPressureData.fTempOilCooler;
-        msg.oil_tank_temperature = tempPressureData.fTempOilTank;
-        hydraulics_pub.publish(msg);
+        Msg.header.frame_id = "hydraulics_monitor_link";
+        Msg.header.stamp = ros::Time::now();
+        Msg.oil_pressure_track_FL = sTempPressureData.fPressureValueFL;
+        Msg.oil_pressure_track_FR = sTempPressureData.fPressureValueFR;
+        Msg.oil_pressure_track_BL = sTempPressureData.fPressureValueBL;
+        Msg.oil_pressure_track_BR = sTempPressureData.fPressureValueBR;
+        Msg.oil_pressure_manifold_F = sTempPressureData.fPressureValueManifoldF;
+        Msg.oil_pressure_manifold_B = sTempPressureData.fPressureValueManifoldB;
+        Msg.oil_cooler_temperature = sTempPressureData.fTempOilCooler;
+        Msg.oil_tank_temperature = sTempPressureData.fTempOilTank;
+        HydraulicsPub.publish(Msg);
       }
     }
     ros::spinOnce();
-    loop_rate.sleep();
+    LoopRate.sleep();
   }
   return 0;
 }

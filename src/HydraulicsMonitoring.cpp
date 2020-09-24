@@ -4,43 +4,55 @@
 
 #include <hydraulics_monitoring/HydraulicsMonitoring.h>
 
-#define HYDRAULICS_PRESSURE_DATA_ID 0xFFD964
-#define HYDRAULICS_TEMPERATURE_DATA_ID 0xFFDA64
+constexpr uint uiHydraulicsPressureData = 0xFFD964;
+constexpr uint uiHydraulicsTemperatureData = 0xFFDA64;
 
-#define PRESSURE_CONSTANT_DIVIDER 100.0
-#define TEMPERATURE_OFFSET 100
-#define TEMPERATURE_CONSTANT_DIVIDER 10.0
+constexpr float fPressureConstantDivider = 100.0;
+constexpr int iTemperatureOffset = 100;
+constexpr float fTemperatureConstantDivider = 10.0;
 
-#define FIRST_SENSOR_ID_BYTE 0
-#define FIRST_SENSOR_DATA_BYTE 1
-#define SECOND_SENSOR_ID_BYTE 3
-#define SECOND_SENSOR_DATA_BYTE 4
+constexpr uint8_t u8FirstSensorIDByte = 0;
+constexpr uint8_t u8FirstSensorDataByte = 1;
+constexpr uint8_t u8SecondSensorIDByte = 3;
+constexpr uint8_t u8SecondSensorDataByte = 4;
 
-#define SENSOR_FL 0
-#define SENSOR_FR 1
-#define SENSOR_FLR_FLAG 0b11 << 0
-#define SENSOR_BL 2
-#define SENSOR_BR 3
-#define SENSOR_BLR_FLAG 0b11 << 2
-#define SENSOR_MF 4
-#define SENSOR_MB 5
-#define SENSOR_MFB_FLAG 0b11 << 4
+constexpr uint8_t u8SensorFL = 0;
+constexpr uint8_t u8SensorFR = 1;
+constexpr uint8_t u8SensorFlagFLR = 0b11 << 0;
+constexpr uint8_t u8SensorBL = 2;
+constexpr uint8_t u8SensorBR = 3;
+constexpr uint8_t u8SensorFlagBLR = 0b11 << 2;
+constexpr uint8_t u8SensorMF = 4;
+constexpr uint8_t u8SensorMB = 5;
+constexpr uint8_t u8SensorFlagMFB = 0b11 << 4;
+constexpr uint8_t u8CoolerTempFirstByte = 0;
+constexpr uint8_t u8TankTempFirstByte = 2;
+constexpr uint8_t u8SensorTempFlag =  0b1 << 6;
 
-#define COOLER_TEMP_FIRST_BYTE 0
-#define TANK_TEMP_FIRST_BYTE 2
-#define SENSOR_TEMP_FLAG 0b1 << 6
-
-#define THREE_BYTES_MASK 0xFFFFFF
+constexpr uint uiThreeBytesMask = 0xFFFFFF;
 
 HydraulicsMonitoring::HydraulicsMonitoring(char* pchCanChannel)
 {
   u8PressDataFlags = 0;
-  _pchCanChannel = pchCanChannel;
+  pchCanChannel = pchCanChannel;
+}
+
+float HydraulicsMonitoring::fParsePressureData(can_frame* ptrFrame, uint8_t u8FirstDataByte)
+{
+  return (static_cast<float>(ptrFrame->data[u8FirstDataByte] + (ptrFrame->data[u8FirstDataByte + 1] << 8)) /
+          fPressureConstantDivider);
+}
+
+float HydraulicsMonitoring::fParseTemperatureData(can_frame* ptrFrame, uint8_t u8FirstDataByte)
+{
+  return (static_cast<float>(ptrFrame->data[u8FirstDataByte] + (ptrFrame->data[u8FirstDataByte + 1] << 8) -
+                             iTemperatureOffset) /
+          fTemperatureConstantDivider);
 }
 
 int HydraulicsMonitoring::configure()
 {
-  return _CanHandler.iInitialize(_pchCanChannel);
+  return CanHandler.iInitialize(pchCanChannel);
 }
 
 bool HydraulicsMonitoring::startup()
@@ -51,68 +63,52 @@ bool HydraulicsMonitoring::startup()
 bool HydraulicsMonitoring::update()
 {
   can_frame frame;
-  while (_CanHandler.bReceiveFrame(&frame))
+  while (CanHandler.bReceiveFrame(&frame))
   {
-    if ((frame.can_id & THREE_BYTES_MASK) == (HYDRAULICS_PRESSURE_DATA_ID & THREE_BYTES_MASK))
+    if ((frame.can_id & uiThreeBytesMask) == (uiHydraulicsPressureData & uiThreeBytesMask))
     {
       // first pair
-      if (frame.data[FIRST_SENSOR_ID_BYTE] == SENSOR_FL && frame.data[SECOND_SENSOR_ID_BYTE] == SENSOR_FR)
+      if (frame.data[u8FirstSensorIDByte] == u8SensorFL && frame.data[u8SecondSensorIDByte] == u8SensorFR)
       {
-        SensorsData.fPressureValueFL =
-            (static_cast<float>(frame.data[FIRST_SENSOR_DATA_BYTE] + (frame.data[FIRST_SENSOR_DATA_BYTE + 1] << 8)) /
-             PRESSURE_CONSTANT_DIVIDER);
-        SensorsData.fPressureValueFR =
-            (static_cast<float>(frame.data[SECOND_SENSOR_DATA_BYTE] + (frame.data[SECOND_SENSOR_DATA_BYTE + 1] << 8)) /
-             PRESSURE_CONSTANT_DIVIDER);
-        u8PressDataFlags = u8PressDataFlags | (SENSOR_FLR_FLAG);
+        sSensorsData.fPressureValueFL = fParsePressureData(&frame, u8FirstSensorDataByte);
+        sSensorsData.fPressureValueFR = fParsePressureData(&frame, u8SecondSensorDataByte);
+        u8PressDataFlags = u8PressDataFlags | (u8SensorFlagFLR);
       }  // second pair
-      else if (frame.data[FIRST_SENSOR_ID_BYTE] == SENSOR_BL && frame.data[SECOND_SENSOR_ID_BYTE] == SENSOR_BR)
+      else if (frame.data[u8FirstSensorIDByte] == u8SensorBL && frame.data[u8SecondSensorIDByte] == u8SensorBR)
       {
-        SensorsData.fPressureValueBL =
-            (static_cast<float>(frame.data[FIRST_SENSOR_DATA_BYTE] + (frame.data[FIRST_SENSOR_DATA_BYTE + 1] << 8)) /
-             PRESSURE_CONSTANT_DIVIDER);
-        SensorsData.fPressureValueBR =
-            (static_cast<float>(frame.data[SECOND_SENSOR_DATA_BYTE] + (frame.data[SECOND_SENSOR_DATA_BYTE + 1] << 8)) /
-             PRESSURE_CONSTANT_DIVIDER);
-        u8PressDataFlags = u8PressDataFlags | (SENSOR_BLR_FLAG);
+        sSensorsData.fPressureValueBL = fParsePressureData(&frame, u8FirstSensorDataByte);
+        sSensorsData.fPressureValueBR = fParsePressureData(&frame, u8SecondSensorDataByte);
+        u8PressDataFlags = u8PressDataFlags | (u8SensorFlagBLR);
       }  // third pair
-      else if (frame.data[FIRST_SENSOR_ID_BYTE] == SENSOR_MF && frame.data[SECOND_SENSOR_ID_BYTE] == SENSOR_MB)
+      else if (frame.data[u8FirstSensorIDByte] == u8SensorMF && frame.data[u8SecondSensorIDByte] == u8SensorMB)
       {
-        SensorsData.fPressureValueManifoldF =
-            (static_cast<float>(frame.data[FIRST_SENSOR_DATA_BYTE] + (frame.data[FIRST_SENSOR_DATA_BYTE + 1] << 8)) /
-             PRESSURE_CONSTANT_DIVIDER);
-        SensorsData.fPressureValueManifoldB =
-            (static_cast<float>(frame.data[SECOND_SENSOR_DATA_BYTE] + (frame.data[SECOND_SENSOR_DATA_BYTE + 1] << 8)) /
-             PRESSURE_CONSTANT_DIVIDER);
-        u8PressDataFlags = u8PressDataFlags | (SENSOR_MFB_FLAG);
+        sSensorsData.fPressureValueManifoldF = fParsePressureData(&frame, u8FirstSensorDataByte);
+        sSensorsData.fPressureValueManifoldB = fParsePressureData(&frame, u8SecondSensorDataByte);
+        u8PressDataFlags = u8PressDataFlags | (u8SensorFlagMFB);
       }
     }  // temperature data
-    else if ((frame.can_id & THREE_BYTES_MASK) == (HYDRAULICS_TEMPERATURE_DATA_ID & THREE_BYTES_MASK))
+    else if ((frame.can_id & uiThreeBytesMask) == (uiHydraulicsTemperatureData & uiThreeBytesMask))
     {
-      SensorsData.fTempOilTank =
-          (static_cast<float>(frame.data[COOLER_TEMP_FIRST_BYTE] + (frame.data[COOLER_TEMP_FIRST_BYTE + 1] << 8) -
-                              TEMPERATURE_OFFSET) /
-           TEMPERATURE_CONSTANT_DIVIDER);
-      SensorsData.fTempOilCooler =
-          (static_cast<float>(frame.data[TANK_TEMP_FIRST_BYTE] + (frame.data[TANK_TEMP_FIRST_BYTE + 1] << 8) -
-                              TEMPERATURE_OFFSET) /
-           TEMPERATURE_CONSTANT_DIVIDER);
-      u8PressDataFlags = u8PressDataFlags | (SENSOR_TEMP_FLAG);
+      sSensorsData.fTempOilTank = fParseTemperatureData(&frame, u8CoolerTempFirstByte);
+      sSensorsData.fTempOilCooler = fParseTemperatureData(&frame, u8TankTempFirstByte);
+      u8PressDataFlags = u8PressDataFlags | (u8SensorTempFlag);
     }
   }
   return true;
 }
 
-bool HydraulicsMonitoring::bGetOilData(SOilSensorsData* dataBufor)
+bool HydraulicsMonitoring::bGetOilData(OilSensorsData* ptrDataBuffer)
 {
-  if (u8PressDataFlags & (SENSOR_FLR_FLAG | SENSOR_BLR_FLAG | SENSOR_MFB_FLAG | SENSOR_TEMP_FLAG))
+  if (u8PressDataFlags & (u8SensorFlagFLR | u8SensorFlagBLR | u8SensorFlagMFB | u8SensorTempFlag))
   {
-    *dataBufor = SensorsData;
+    *ptrDataBuffer = sSensorsData;
     u8PressDataFlags = 0;
     return true;
   }
   else
+  {
     return false;
+  }
 }
 
 bool HydraulicsMonitoring::stop()
