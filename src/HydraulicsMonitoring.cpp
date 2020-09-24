@@ -35,6 +35,7 @@ HydraulicsMonitoring::HydraulicsMonitoring(char* ptrCanChannelPick)
 {
   u8PressDataFlags = 0;
   ptrCanChannel = ptrCanChannelPick;
+  configure();
 }
 
 float HydraulicsMonitoring::fParsePressureData(can_frame* ptrFrame, uint8_t u8FirstDataByte)
