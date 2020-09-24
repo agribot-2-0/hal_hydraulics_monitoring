@@ -31,10 +31,10 @@ constexpr uint8_t u8SensorTempFlag =  0b1 << 6;
 
 constexpr uint uiThreeBytesMask = 0xFFFFFF;
 
-HydraulicsMonitoring::HydraulicsMonitoring(char* pchCanChannel)
+HydraulicsMonitoring::HydraulicsMonitoring(char* ptrCanChannelPick)
 {
   u8PressDataFlags = 0;
-  pchCanChannel = pchCanChannel;
+  ptrCanChannel = ptrCanChannelPick;
 }
 
 float HydraulicsMonitoring::fParsePressureData(can_frame* ptrFrame, uint8_t u8FirstDataByte)
@@ -52,7 +52,7 @@ float HydraulicsMonitoring::fParseTemperatureData(can_frame* ptrFrame, uint8_t u
 
 int HydraulicsMonitoring::configure()
 {
-  return CanHandler.iInitialize(pchCanChannel);
+  return canHandler.iInitialize(ptrCanChannel);
 }
 
 bool HydraulicsMonitoring::startup()
@@ -63,7 +63,7 @@ bool HydraulicsMonitoring::startup()
 bool HydraulicsMonitoring::update()
 {
   can_frame frame;
-  while (CanHandler.bReceiveFrame(&frame))
+  while (canHandler.bReceiveFrame(&frame))
   {
     if ((frame.can_id & uiThreeBytesMask) == (uiHydraulicsPressureData & uiThreeBytesMask))
     {

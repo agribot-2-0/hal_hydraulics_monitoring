@@ -23,13 +23,13 @@ struct OilSensorsData
 class HydraulicsMonitoring : public AgribotComponent
 {
 private:
-  char* pchCanChannel;
-  Can CanHandler;
+  char* ptrCanChannel;
+  Can canHandler;
   OilSensorsData sSensorsData;
   uint8_t u8PressDataFlags;
 
 public:
-  explicit HydraulicsMonitoring(char* pchCanChannel);
+  explicit HydraulicsMonitoring(char* ptrCanChannelName);
 
   virtual int configure();
   virtual bool startup();
