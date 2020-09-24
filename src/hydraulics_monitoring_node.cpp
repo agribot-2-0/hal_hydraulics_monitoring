@@ -15,12 +15,13 @@ int main(int argc, char** argv)
   ros::Publisher hydraulicsPub = nh.advertise<agribot_msgs::AgribotHydraulics>("agribot/hydraulics", 1);
   agribot_msgs::AgribotHydraulics msg;
 
-  if (argc < 3)
+  if (argc < 2)
   {
     ROS_INFO("[Hydraulics Monitoring] Specify can channel "
-             "[can0 or can1] and proper ID.");
+             "[can0 or can1]");
     return -1;
   }
+
 
   HydraulicsMonitoring hydraulics(argv[1]);
 
