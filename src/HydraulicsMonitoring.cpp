@@ -91,19 +91,19 @@ bool HydraulicsMonitoring::update()
     }  // temperature data
     else if ((frame.can_id & uiThreeBytesMask) == (uiHydraulicsTemperatureData & uiThreeBytesMask))
     {
-      sSensorsData.fTempOilTank = fParseTemperatureData(&frame, u8CoolerTempFirstByte);
-      sSensorsData.fTempOilCooler = fParseTemperatureData(&frame, u8TankTempFirstByte);
+      sSensorsData.fTempOilCooler = fParseTemperatureData(&frame, u8CoolerTempFirstByte);
+      sSensorsData.fTempOilTank = fParseTemperatureData(&frame, u8TankTempFirstByte);
       u8PressDataFlags = u8PressDataFlags | u8SensorTempFlag;
     }
   }
   return true;
 }
 
-bool HydraulicsMonitoring::bGetOilData(OilSensorsData*& ptrDataBuffer)
+bool HydraulicsMonitoring::bGetOilData(OilSensorsData** ptrDataBuffer)
 {
   if (!bOilDataBufferInitialized)
   {
-    ptrDataBuffer = &sSensorsData;
+    *ptrDataBuffer = &sSensorsData;
     bOilDataBufferInitialized = true;
   }
   if (static_cast<uint>(u8PressDataFlags) ==

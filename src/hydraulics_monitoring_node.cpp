@@ -31,7 +31,7 @@ int main(int argc, char** argv)
   {
     if (hydraulics.update())
     {
-      if (hydraulics.bGetOilData(ptrTempPressureData))
+      if (hydraulics.bGetOilData(&ptrTempPressureData))
       {
         msg.header.frame_id = "hydraulics_monitor_link";
         msg.header.stamp = ros::Time::now();
