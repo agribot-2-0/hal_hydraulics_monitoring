@@ -99,7 +99,7 @@ bool HydraulicsMonitoring::update()
   return true;
 }
 
-bool HydraulicsMonitoring::bGetOilData(OilSensorsData* ptrDataBuffer)
+bool HydraulicsMonitoring::bGetOilData(OilSensorsData*& ptrDataBuffer)
 {
   if (!bOilDataBufferInitialized)
   {

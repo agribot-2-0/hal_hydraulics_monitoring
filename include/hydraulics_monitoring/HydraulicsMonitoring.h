@@ -40,5 +40,5 @@ public:
 
   float fParsePressureData(can_frame* ptrFrame, uint8_t u8FirstDataByte);
   float fParseTemperatureData(can_frame* ptrFrame, uint8_t u8FirstDataByte);
-  bool bGetOilData(OilSensorsData* dataBufor);
+  bool bGetOilData(OilSensorsData*& dataBufor);
 };
