@@ -31,10 +31,11 @@ constexpr uint8_t u8SensorTempFlag = 0b1 << 6;
 
 constexpr uint uiThreeBytesMask = 0xFFFFFF;
 
-HydraulicsMonitoring::HydraulicsMonitoring(char* ptrCanChannelPick)
+HydraulicsMonitoring::HydraulicsMonitoring(std::string NewCanChannelName)
 {
   u8PressDataFlags = 0;
-  ptrCanChannel = ptrCanChannelPick;
+  bOilDataBufferInitialized = false;
+  sCanChannel = NewCanChannelName;
   configure();
 }
 
@@ -53,7 +54,7 @@ float HydraulicsMonitoring::fParseTemperatureData(can_frame* ptrFrame, uint8_t u
 
 int HydraulicsMonitoring::configure()
 {
-  return canHandler.iInitialize(ptrCanChannel);
+  return canHandler.iInitialize(sCanChannel.c_str());
 }
 
 bool HydraulicsMonitoring::startup()
@@ -100,10 +101,14 @@ bool HydraulicsMonitoring::update()
 
 bool HydraulicsMonitoring::bGetOilData(OilSensorsData* ptrDataBuffer)
 {
+  if (!bOilDataBufferInitialized)
+  {
+    ptrDataBuffer = &sSensorsData;
+    bOilDataBufferInitialized = true;
+  }
   if (static_cast<uint>(u8PressDataFlags) ==
       static_cast<uint>(u8SensorFlagFLR | u8SensorFlagBLR | u8SensorFlagMFB | u8SensorTempFlag))
   {
-    *ptrDataBuffer = sSensorsData;
     u8PressDataFlags = 0;
     return true;
   }

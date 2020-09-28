@@ -6,6 +6,7 @@
 #include <ros/console.h>
 #include <hydraulics_monitoring/HydraulicsMonitoring.h>
 #include <agribot_msgs/AgribotHydraulics.h>
+#include <string>
 
 int main(int argc, char** argv)
 {
@@ -17,32 +18,31 @@ int main(int argc, char** argv)
 
   if (argc < 2)
   {
-    ROS_INFO("[Hydraulics Monitoring] Specify can channel "
-             "[can0 or can1]");
+    ROS_INFO("[Hydraulics Monitoring] Specify can channel [can0 or can1]");
     return -1;
   }
 
+  std::string sCanChannel = std::string(argv[1]);
+  HydraulicsMonitoring hydraulics(sCanChannel);
 
-  HydraulicsMonitoring hydraulics(argv[1]);
-
-  OilSensorsData sTempPressureData;
+  OilSensorsData* ptrTempPressureData;
 
   while (ros::ok())
   {
     if (hydraulics.update())
     {
-      if (hydraulics.bGetOilData(&sTempPressureData))
+      if (hydraulics.bGetOilData(ptrTempPressureData))
       {
         msg.header.frame_id = "hydraulics_monitor_link";
         msg.header.stamp = ros::Time::now();
-        msg.oil_pressure_track_FL = sTempPressureData.fPressureValueFL;
-        msg.oil_pressure_track_FR = sTempPressureData.fPressureValueFR;
-        msg.oil_pressure_track_BL = sTempPressureData.fPressureValueBL;
-        msg.oil_pressure_track_BR = sTempPressureData.fPressureValueBR;
-        msg.oil_pressure_manifold_F = sTempPressureData.fPressureValueManifoldF;
-        msg.oil_pressure_manifold_B = sTempPressureData.fPressureValueManifoldB;
-        msg.oil_cooler_temperature = sTempPressureData.fTempOilCooler;
-        msg.oil_tank_temperature = sTempPressureData.fTempOilTank;
+        msg.oil_pressure_track_FL = ptrTempPressureData->fPressureValueFL;
+        msg.oil_pressure_track_FR = ptrTempPressureData->fPressureValueFR;
+        msg.oil_pressure_track_BL = ptrTempPressureData->fPressureValueBL;
+        msg.oil_pressure_track_BR = ptrTempPressureData->fPressureValueBR;
+        msg.oil_pressure_manifold_F = ptrTempPressureData->fPressureValueManifoldF;
+        msg.oil_pressure_manifold_B = ptrTempPressureData->fPressureValueManifoldB;
+        msg.oil_cooler_temperature = ptrTempPressureData->fTempOilCooler;
+        msg.oil_tank_temperature = ptrTempPressureData->fTempOilTank;
         hydraulicsPub.publish(msg);
       }
     }

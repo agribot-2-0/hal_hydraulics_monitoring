@@ -7,6 +7,7 @@
 #include <agribot_common/AgribotComponent.h>
 #include <agribot_common/Can.h>
 #include <queue>
+#include <string>
 
 struct OilSensorsData
 {
@@ -23,14 +24,14 @@ struct OilSensorsData
 class HydraulicsMonitoring : public AgribotComponent
 {
 private:
-  char* ptrCanChannel;
+  std::string sCanChannel;
   Can canHandler;
   OilSensorsData sSensorsData;
   uint8_t u8PressDataFlags;
+  bool bOilDataBufferInitialized;
 
 public:
-  explicit HydraulicsMonitoring(char* ptrCanChannelName);
-
+  explicit HydraulicsMonitoring(std::string NewCanChannelName);
   virtual int configure();
   virtual bool startup();
   virtual bool update();
