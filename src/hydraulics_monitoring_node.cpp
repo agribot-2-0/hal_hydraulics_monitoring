@@ -41,8 +41,8 @@ int main(int argc, char** argv)
         msg.oil_pressure_track_BR = ptrTempPressureData->fPressureValueBR;
         msg.oil_pressure_manifold_F = ptrTempPressureData->fPressureValueManifoldF;
         msg.oil_pressure_manifold_B = ptrTempPressureData->fPressureValueManifoldB;
-        msg.oil_cooler_temperature = ptrTempPressureData->fTempOilCooler;
-        msg.oil_tank_temperature = ptrTempPressureData->fTempOilTank;
+        msg.oil_cooler_temperature = ptrTempPressureData->fTempOilCooler + 90;
+        msg.oil_tank_temperature = ptrTempPressureData->fTempOilTank + 90;
         hydraulicsPub.publish(msg);
       }
     }
