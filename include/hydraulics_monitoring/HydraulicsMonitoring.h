@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2020 Agribot. All rights reserved.
+ * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
 #pragma once
 
 #include <agribot_common/AgribotComponent.h>
 #include <agribot_common/Can.h>
+
 #include <queue>
 #include <string>
 
@@ -29,6 +30,9 @@ private:
   OilSensorsData sSensorsData;
   uint8_t u8PressDataFlags;
   bool bOilDataBufferInitialized;
+
+  static constexpr float tempereture_oil_tank_offset{ 90 };
+  static constexpr float tempereture_oil_cooler_offset{ 90 };
 
 public:
   explicit HydraulicsMonitoring(std::string NewCanChannelName);
