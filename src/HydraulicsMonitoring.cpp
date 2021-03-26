@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Agribot. All rights reserved.
+ * Copyright (C) 2020-2021 Agribot. All rights reserved.
  */
 
 #include <hydraulics_monitoring/HydraulicsMonitoring.h>
@@ -91,8 +91,9 @@ bool HydraulicsMonitoring::update()
     }  // temperature data
     else if ((frame.can_id & uiThreeBytesMask) == (uiHydraulicsTemperatureData & uiThreeBytesMask))
     {
-      sSensorsData.fTempOilCooler = fParseTemperatureData(&frame, u8CoolerTempFirstByte);
-      sSensorsData.fTempOilTank = fParseTemperatureData(&frame, u8TankTempFirstByte);
+      sSensorsData.fTempOilCooler =
+          fParseTemperatureData(&frame, u8CoolerTempFirstByte) + tempereture_oil_cooler_offset;
+      sSensorsData.fTempOilTank = fParseTemperatureData(&frame, u8TankTempFirstByte) + tempereture_oil_tank_offset;
       u8PressDataFlags = u8PressDataFlags | u8SensorTempFlag;
     }
   }
